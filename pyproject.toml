@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tianzhi-core"
-version = "0.5.0"
+version = "0.6.0"
 description = "东方术数的核心算法：以典籍为据，把可推算的部分还原成可检验的算法"
 readme = "README.md"
 requires-python = ">=3.10"

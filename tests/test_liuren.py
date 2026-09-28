@@ -101,3 +101,18 @@ def test_plate_fixed_layout_and_sky_fields():
                    ("亥", "合", "辛"), ("戌", "雀", "庚"), ("辰", "常", "甲"), ("巳", "玄", "乙"),
                    ("酉", "蛇", "己"), ("申", "贵", "戊"), ("未", "后", "丁"), ("午", "阴", "丙")]
     assert {z for z, p in plate["palaces"].items() if p["is_kong"]} == {"未", "申"}   # 天盘寅卯空，压在未申上
+
+
+def test_refresh_plate_rebuilds_old_records():
+    """旧版本存下的课：布局随占时六合转、十二宫按地盘取遁干。refresh_plate 只凭课里自带的表重建，
+    结果与当前版本新起的课一致"""
+    import copy
+    fresh = L.qike(2026, 9, 28, 18, 30)
+    old = copy.deepcopy(fresh)
+    old["plate"]["layout"] = {"top": ["辰", "巳", "午", "未"], "right": ["申", "酉"],
+                              "bottom": ["丑", "子", "亥", "戌"], "left": ["卯", "寅"]}
+    for z, p in old["plate"]["palaces"].items():
+        p["xun_gan"] = L.get_xun_dun_gan(fresh["ganzhi"]["day"], z)
+        p["is_kong"] = z in fresh["xun_kong"]
+    assert L.refresh_plate(old)["plate"] == fresh["plate"]
+    assert L.refresh_plate({"four_classes": []}) == {"four_classes": []}   # 缺表的不动

@@ -156,6 +156,45 @@ PLATE_LAYOUT = {
 }
 
 
+def build_palaces(tdp: dict, tj_map: dict, day_ganzhi: str, xun_kong, shen_sha) -> dict:
+    """天地盘十二宫，键是地盘支。每宫除 earth 外各项都说的是压在上面的天盘支：遁干、天将、
+    六亲、神煞、空亡都随天盘支走，与三传所标同一口径。天将尤其如此——贵人乘天盘上的贵人支、
+    其余依次布开，《六壬大全》课经诸例三传所标天将，按天盘支查 45 例合 42，按地盘支查只合 3。
+    tj_map 为 {天盘支: 天将}，shen_sha 为 [{name, zhi}]"""
+    day_gan = day_ganzhi[0]
+    by_zhi = {}
+    for item in shen_sha or []:
+        by_zhi.setdefault(item["zhi"], []).append(item["name"])
+    out = {}
+    for z in ZHI:
+        sky = tdp.get(z, "")
+        jiang = tj_map.get(sky, "")
+        out[z] = {
+            "earth": z,
+            "sky": sky,
+            "xun_gan": get_xun_dun_gan(day_ganzhi, sky),
+            "tian_jiang": jiang,
+            "tian_jiang_short": TIAN_JIANG_SHORT.get(jiang, ""),
+            "liu_qin": liu_qin(sky, day_gan),
+            "shen_sha": by_zhi.get(sky, []),
+            "is_kong": sky in (xun_kong or []),
+        }
+    return out
+
+
+def refresh_plate(ke: dict) -> dict:
+    """按当前口径重建一课的盘面布局与十二宫，只用课里自带的天地盘、天将表、日干支、旬空、神煞，
+    不重新起课。给旧版本存下来的课用：老课的布局随占时转、遁干按地盘取。原地更新并返回 ke"""
+    tdp, tj = ke.get("tian_di_pan"), ke.get("tian_jiang_map")
+    day_gz = (ke.get("ganzhi") or {}).get("day") or (ke.get("day_gan", "") + ke.get("day_zhi", ""))
+    if not (tdp and tj and len(day_gz) == 2):
+        return ke
+    plate = ke.setdefault("plate", {})
+    plate["layout"] = PLATE_LAYOUT
+    plate["palaces"] = build_palaces(tdp, tj, day_gz, ke.get("xun_kong"), ke.get("shen_sha"))
+    return ke
+
+
 # ============================================================
 # 月将加占时 -> 天地盘
 # ============================================================
@@ -711,25 +750,9 @@ def qike(year: int, month: int, day: int, hour: int, minute: int,
         "mo": annotate(chuan["mo"]),
     }
 
-    def palace(z: str) -> dict:
-        """地盘 z 这一位。除 earth 外各项都说的是压在上面的天盘支：遁干、天将、六亲、神煞、空亡
-        都随天盘支走，与三传所标同一口径。天将尤其如此——贵人乘天盘上的贵人支、其余依次布开，
-        《六壬大全》课经诸例三传所标天将，按天盘支查 45 例合 42，按地盘支查只合 3。"""
-        sky = tdp.get(z, "")
-        return {
-            "earth": z,
-            "sky": sky,
-            "xun_gan": get_xun_dun_gan(day_ganzhi, sky),
-            "tian_jiang": tj_map.get(sky, ""),
-            "tian_jiang_short": TIAN_JIANG_SHORT.get(tj_map.get(sky, ""), ""),
-            "liu_qin": liu_qin(sky, day_gan),
-            "shen_sha": shen_sha_by_zhi.get(sky, []),
-            "is_kong": sky in xk,
-        }
-
     plate = {
         "layout": PLATE_LAYOUT,
-        "palaces": {z: palace(z) for z in ZHI},
+        "palaces": build_palaces(tdp, tj_map, day_ganzhi, xk, shen_sha),
         "four_courses": list(reversed(classes_full)),
         "three_transmissions": [
             {"stage": "初", "info": chuan_full["chu"]},
