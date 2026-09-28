@@ -19,9 +19,6 @@ from lunar_python.util import LunarUtil
 # 基础常量
 # ============================================================
 ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
-# 地支六合：天地盘方阵以「占时的六合支」为左上起手（对齐权威排盘的动态起手）
-LIU_HE = {"子": "丑", "丑": "子", "寅": "亥", "亥": "寅", "卯": "戌", "戌": "卯",
-          "辰": "酉", "酉": "辰", "巳": "申", "申": "巳", "午": "未", "未": "午"}
 GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
 
 # 日干寄宫（六壬日干转地盘位）
@@ -149,15 +146,14 @@ def get_yue_jiang(year: int, month: int, day: int, hour: int = 12) -> str:
 # 盘面方阵布局：以「占时的六合支」为左上起手（对齐权威排盘的动态画法：每换占时起手位随之变）。
 # 12 支按顺时针铺成 4×4 边框：顶 4、右 2、底 4（左→右展示是顺时针的反向）、左 2（上→下展示是顺时针的反向）。
 # ============================================================
-def _make_layout(start_zhi: str = "子") -> dict:
-    start = zhi_idx(start_zhi)
-    order = [ZHI[(start + i) % 12] for i in range(12)]
-    return {
-        "top":    order[0:4],
-        "right":  order[4:6],
-        "bottom": list(reversed(order[6:10])),
-        "left":   list(reversed(order[10:12])),
-    }
+# 天地盘方阵：地盘固定在通行方位——上巳午未申、右酉戌、下亥子丑寅、左卯辰。
+# 下排、左列按画面从左到右、从上到下列出。格内写的是压在该地盘位上的天盘支
+PLATE_LAYOUT = {
+    "top": ["巳", "午", "未", "申"],
+    "right": ["酉", "戌"],
+    "bottom": ["寅", "丑", "子", "亥"],
+    "left": ["辰", "卯"],
+}
 
 
 # ============================================================
@@ -716,23 +712,23 @@ def qike(year: int, month: int, day: int, hour: int, minute: int,
     }
 
     def palace(z: str) -> dict:
+        """地盘 z 这一位。除 earth 外各项都说的是压在上面的天盘支：遁干、天将、六亲、神煞、空亡
+        都随天盘支走，与三传所标同一口径。天将尤其如此——贵人乘天盘上的贵人支、其余依次布开，
+        《六壬大全》课经诸例三传所标天将，按天盘支查 45 例合 42，按地盘支查只合 3。"""
+        sky = tdp.get(z, "")
         return {
             "earth": z,
-            "sky": tdp.get(z, ""),
-            "xun_gan": get_xun_dun_gan(day_ganzhi, z),
-            # 天将乘天盘支（贵人乘天盘上的贵人支，其余依次布开），所以这一宫的天将
-            # 要按压在它上面的天盘支去查，不能按地盘支查。《六壬大全》课经诸例三传所标
-            # 天将，按天盘支查 45 例合 42，按地盘支查只合 3。
-            "tian_jiang": tj_map.get(tdp.get(z, ""), ""),
-            "tian_jiang_short": TIAN_JIANG_SHORT.get(tj_map.get(tdp.get(z, ""), ""), ""),
-            "liu_qin": liu_qin(z, day_gan),
-            "shen_sha": shen_sha_by_zhi.get(z, []),
-            "is_kong": z in xk,
+            "sky": sky,
+            "xun_gan": get_xun_dun_gan(day_ganzhi, sky),
+            "tian_jiang": tj_map.get(sky, ""),
+            "tian_jiang_short": TIAN_JIANG_SHORT.get(tj_map.get(sky, ""), ""),
+            "liu_qin": liu_qin(sky, day_gan),
+            "shen_sha": shen_sha_by_zhi.get(sky, []),
+            "is_kong": sky in xk,
         }
 
-    # 盘面 4×4 方阵布局：以「占时的六合支」为左上起手（对齐权威排盘的动态画法）。
     plate = {
-        "layout": _make_layout(LIU_HE.get(zhan_shi, "子")),
+        "layout": PLATE_LAYOUT,
         "palaces": {z: palace(z) for z in ZHI},
         "four_courses": list(reversed(classes_full)),
         "three_transmissions": [

@@ -85,3 +85,19 @@ def test_day_night_by_sunrise_sunset():
     assert r["tian_jiang_is_day_time"] is True
     # 活时报数没有真实时刻，仍按占时支：寅属夜
     assert L.qike(2026, 6, 21, 4, 50, user_number=3)["tian_jiang_is_day_time"] is False
+
+
+def test_plate_fixed_layout_and_sky_fields():
+    """天地盘方阵：地盘固定通行方位，每宫的遁干、天将、空亡都跟天盘支走。
+    2026-09-28 18:30 乙巳日酉时、月将辰（夜占），与他家排盘逐格对照：
+    上排天盘 子丑寅卯（勾龙空虎、壬癸◎◎），左 亥戌（合雀、辛庚），右 辰巳（常玄、甲乙），
+    下排 酉申未午（蛇贵后阴、己戊丁丙）"""
+    plate = L.qike(2026, 9, 28, 18, 30)["plate"]
+    assert plate["layout"] == {"top": ["巳", "午", "未", "申"], "right": ["酉", "戌"],
+                               "bottom": ["寅", "丑", "子", "亥"], "left": ["辰", "卯"]}
+    order = plate["layout"]["top"] + plate["layout"]["left"] + plate["layout"]["right"] + plate["layout"]["bottom"]
+    got = [(plate["palaces"][z]["sky"], plate["palaces"][z]["tian_jiang_short"], plate["palaces"][z]["xun_gan"]) for z in order]
+    assert got == [("子", "勾", "壬"), ("丑", "龙", "癸"), ("寅", "空", ""), ("卯", "虎", ""),
+                   ("亥", "合", "辛"), ("戌", "雀", "庚"), ("辰", "常", "甲"), ("巳", "玄", "乙"),
+                   ("酉", "蛇", "己"), ("申", "贵", "戊"), ("未", "后", "丁"), ("午", "阴", "丙")]
+    assert {z for z, p in plate["palaces"].items() if p["is_kong"]} == {"未", "申"}   # 天盘寅卯空，压在未申上
