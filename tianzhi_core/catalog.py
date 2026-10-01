@@ -11,7 +11,7 @@
 
     from tianzhi_core import catalog
 
-    catalog.layers()                    # 四层各是什么
+    catalog.layers()                    # 各层是什么（历法、干支、八字、六壬、紫微）
     catalog.tools('bazi')               # 某一层的全部方法
     catalog.describe('bazi.yongshen.select')   # 单个方法的完整说明
     print(catalog.as_text())            # 整份清单，可直接贴给模型
@@ -31,6 +31,8 @@ LAYERS: dict[str, str] = {
     "calendar": "历法与纪时。节气精确时刻、真太阳时。天文计算，只有对错，无流派。",
     "core": "干支与五行。藏干、刑冲合害、十二长生、旺相休囚死、人元司令。基础常识。",
     "bazi": "八字。排盘、量化、调候、格局、取用、排运、引动、评分、合盘、神煞。流派分歧集中在这一层。",
+    "liuren": "大六壬。起课（月将加时）、天地盘、四课三传、十二天将、遁干六亲、空亡神煞，课体、毕法与占事断。",
+    "ziwei": "紫微斗数。安星排盘（十二宫、主星辅星、四化、五行局、命主身主）、格局、断语，大限流年等六层运限与限运论断。",
 }
 
 
