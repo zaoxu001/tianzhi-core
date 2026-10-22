@@ -3,7 +3,7 @@ from tianzhi_core import catalog
 
 
 def test_all_layers_listed():
-    assert {"calendar", "core", "bazi", "liuren", "ziwei"} <= set(catalog.layers())
+    assert {"calendar", "core", "bazi", "liuren", "qimen", "ziwei"} <= set(catalog.layers())
 
 
 def test_liuren_and_ziwei_tools_discoverable():
@@ -14,3 +14,8 @@ def test_liuren_and_ziwei_tools_discoverable():
     text = catalog.as_text("ziwei")
     assert "build_chart" in text
     assert "qike" in catalog.describe("liuren.pan.qike")
+
+
+def test_qimen_tools_discoverable():
+    names = {t.name for t in catalog.tools("qimen")}
+    assert {"qimen.qiju.qiju", "qimen.ju.ju_of", "qimen.pan.build", "qimen.geju.find"} <= names

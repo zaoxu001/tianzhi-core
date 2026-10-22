@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "tianzhi-core"
-version = "0.6.2"
+version = "0.7.0"
 description = "东方术数的核心算法：以典籍为据，把可推算的部分还原成可检验的算法"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "zaoxu001" }]
-keywords = ["bazi", "four-pillars", "liuren", "ziwei", "ganzhi", "jieqi", "metaphysics"]
+keywords = ["bazi", "four-pillars", "liuren", "qimen", "ziwei", "ganzhi", "jieqi", "metaphysics"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
